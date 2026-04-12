@@ -38,3 +38,15 @@ Recommended next backend additions:
 - `/api/ingest/*` routes for source connectors
 - Cron-triggered ingestion + deduplication
 - User subscription preferences for alert routing
+
+## Email integration
+Contact and subscribe forms now post to:
+- `POST /api/contact`
+- `POST /api/subscribe`
+
+Optional environment variables for Resend integration:
+- `RESEND_API_KEY`
+- `CONTACT_TO_EMAIL`
+- `CONTACT_FROM_EMAIL`
+
+If env vars are missing, forms still return success responses but do not send provider emails.
