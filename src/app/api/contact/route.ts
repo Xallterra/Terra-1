@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const from = process.env.CONTACT_FROM_EMAIL ?? 'Makriva <onboarding@resend.dev>';
 
     if (!process.env.RESEND_API_KEY) {
-      return NextResponse.json({ ok: true, note: 'Email provider not configured yet.' }, { status: 200 });
+      return NextResponse.json({ error: 'Email provider is not configured. Set RESEND_API_KEY.' }, { status: 503 });
     }
 
     await sendWithResend({

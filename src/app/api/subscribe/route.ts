@@ -26,14 +26,16 @@ export async function POST(request: NextRequest) {
     const to = process.env.CONTACT_TO_EMAIL ?? 'makriva14@gmail.com';
     const from = process.env.CONTACT_FROM_EMAIL ?? 'Makriva <onboarding@resend.dev>';
 
-    if (process.env.RESEND_API_KEY) {
-      await sendWithResend({
-        to,
-        from,
-        subject: '[Makriva Subscribe] New subscription request',
-        html: `<p><strong>Subscriber:</strong> ${email}</p>`
-      });
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json({ error: 'Email provider is not configured. Set RESEND_API_KEY.' }, { status: 503 });
     }
+
+    await sendWithResend({
+      to,
+      from,
+      subject: '[Makriva Subscribe] New subscription request',
+      html: `<p><strong>Subscriber:</strong> ${email}</p>`
+    });
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch {
