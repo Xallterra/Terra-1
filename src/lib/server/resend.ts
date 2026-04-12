@@ -3,6 +3,7 @@ export async function sendWithResend(params: {
   from: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { skipped: true };
@@ -17,7 +18,8 @@ export async function sendWithResend(params: {
       from: params.from,
       to: [params.to],
       subject: params.subject,
-      html: params.html
+      html: params.html,
+      reply_to: params.replyTo
     })
   });
 

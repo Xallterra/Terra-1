@@ -46,10 +46,10 @@ Contact and subscribe forms now post to:
 
 Required environment variables for email sending:
 - `RESEND_API_KEY`
-- `CONTACT_FROM_EMAIL` (must be verified in Resend)
+- `CONTACT_FROM_EMAIL` (optional; defaults to `Makriva <onboarding@resend.dev>` )
 - `CONTACT_TO_EMAIL` (optional override; default fallback is `makriva14@gmail.com`)
 
-If `RESEND_API_KEY` or `CONTACT_FROM_EMAIL` is missing, the API returns `503` and will not send emails.
+If `RESEND_API_KEY` is missing, the API returns `503` and will not send emails.
 
 Default recipient fallback:
 - `makriva14@gmail.com`

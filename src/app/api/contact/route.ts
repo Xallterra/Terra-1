@@ -34,19 +34,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing RESEND_API_KEY.' }, { status: 503 });
     }
 
-    if (!process.env.CONTACT_FROM_EMAIL) {
-      return NextResponse.json(
-        { error: 'Missing CONTACT_FROM_EMAIL. Use a verified Resend sender/domain.' },
-        { status: 503 }
-      );
-    }
-
     const to = process.env.CONTACT_TO_EMAIL ?? 'makriva14@gmail.com';
-    const from = process.env.CONTACT_FROM_EMAIL;
+    const from = process.env.CONTACT_FROM_EMAIL ?? 'Makriva <onboarding@resend.dev>';
 
     await sendWithResend({
       to,
       from,
+      replyTo: email,
       subject: `[Makriva Contact] ${subject}`,
       html: `
         <h2>Makriva Contact Inquiry</h2>
