@@ -46,12 +46,10 @@ Contact and subscribe forms now post to:
 
 Required environment variables for email sending:
 - `RESEND_API_KEY`
-- `CONTACT_TO_EMAIL`
-- `CONTACT_FROM_EMAIL`
+- `CONTACT_FROM_EMAIL` (must be verified in Resend)
+- `CONTACT_TO_EMAIL` (optional override; default fallback is `makriva14@gmail.com`)
 
-If `RESEND_API_KEY` is missing, the API returns `503` and does not send emails.
-
-`CONTACT_FROM_EMAIL` must be a sender verified in your Resend account (or a permitted testing sender).
+If `RESEND_API_KEY` or `CONTACT_FROM_EMAIL` is missing, the API returns `503` and will not send emails.
 
 Default recipient fallback:
 - `makriva14@gmail.com`

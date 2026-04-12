@@ -23,12 +23,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid email is required.' }, { status: 400 });
     }
 
-    const to = process.env.CONTACT_TO_EMAIL ?? 'makriva14@gmail.com';
-    const from = process.env.CONTACT_FROM_EMAIL ?? 'Makriva <onboarding@resend.dev>';
-
     if (!process.env.RESEND_API_KEY) {
-      return NextResponse.json({ error: 'Email provider is not configured. Set RESEND_API_KEY.' }, { status: 503 });
+      return NextResponse.json({ error: 'Missing RESEND_API_KEY.' }, { status: 503 });
     }
+
+    if (!process.env.CONTACT_FROM_EMAIL) {
+      return NextResponse.json(
+        { error: 'Missing CONTACT_FROM_EMAIL. Use a verified Resend sender/domain.' },
+        { status: 503 }
+      );
+    }
+
+    const to = process.env.CONTACT_TO_EMAIL ?? 'makriva14@gmail.com';
+    const from = process.env.CONTACT_FROM_EMAIL;
 
     await sendWithResend({
       to,
@@ -38,7 +45,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ ok: true }, { status: 200 });
-  } catch {
-    return NextResponse.json({ error: 'Failed to subscribe.' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to subscribe.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
