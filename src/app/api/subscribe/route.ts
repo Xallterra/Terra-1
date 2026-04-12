@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid email is required.' }, { status: 400 });
     }
 
-    const to = process.env.CONTACT_TO_EMAIL ?? 'xallterra@gmail.com';
+    const to = process.env.CONTACT_TO_EMAIL ?? 'makriva14@gmail.com';
     const from = process.env.CONTACT_FROM_EMAIL ?? 'Makriva <onboarding@resend.dev>';
 
     if (process.env.RESEND_API_KEY) {

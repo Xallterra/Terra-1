@@ -52,5 +52,5 @@ Optional environment variables for Resend integration:
 If env vars are missing, forms still return success responses but do not send provider emails.
 
 Default recipient fallback:
-- `xallterra@gmail.com`
+- `makriva14@gmail.com`
 
