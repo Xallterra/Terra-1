@@ -1,7 +1,6 @@
 {
   "/page": "app/page.js",
+  "/microsoft-updates/page": "app/microsoft-updates/page.js",
   "/alerts/page": "app/alerts/page.js",
-  "/vulnerabilities/page": "app/vulnerabilities/page.js",
-  "/alerts/[slug]/page": "app/alerts/[slug]/page.js",
-  "/microsoft-updates/page": "app/microsoft-updates/page.js"
+  "/outages/page": "app/outages/page.js"
 }
