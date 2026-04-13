@@ -1,11 +1,14 @@
-import { alerts } from '@/lib/alerts-data';
 import { PageHero } from '@/components/shared/page-hero';
 import { AlertCard } from '@/components/alerts/alert-card';
 import { EmptyState } from '@/components/shared/empty-state';
+import { fetchAlerts } from '@/lib/alerts-data';
 
 const rank = { Critical: 4, High: 3, Medium: 2, Low: 1 } as const;
 
-export default function VulnerabilitiesPage() {
+export const revalidate = 300;
+
+export default async function VulnerabilitiesPage() {
+  const alerts = await fetchAlerts();
   const items = alerts
     .filter((item) => item.category === 'Vulnerability' || item.category === 'Security Advisory')
     .sort((a, b) => (rank[b.severity ?? 'Low'] ?? 0) - (rank[a.severity ?? 'Low'] ?? 0));

@@ -1,6 +1,8 @@
 import { PageHero } from '@/components/shared/page-hero';
 import { AlertCard } from '@/components/alerts/alert-card';
 import { EmptyState } from '@/components/shared/empty-state';
+import { OutageStatusDashboard } from '@/components/outages/outage-status-dashboard';
+import { OutageTimeline } from '@/components/outages/outage-timeline';
 import { fetchAlerts } from '@/lib/alerts-data';
 
 const rank = { Investigating: 4, Identified: 3, Monitoring: 2, Resolved: 1 } as const;
@@ -20,11 +22,23 @@ export default async function OutagesPage() {
         {items.length === 0 ? (
           <EmptyState title="No active outage records" description="Outage alerts appear here with lifecycle status from investigating through resolved." />
         ) : (
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-            {items.map((item) => (
-              <AlertCard key={item.id} alert={item} />
-            ))}
-          </div>
+          <>
+            {/* Status Dashboard */}
+            <OutageStatusDashboard outages={items} />
+
+            {/* Timeline & Affected Services */}
+            <OutageTimeline outages={items} />
+
+            {/* All Incidents Grid */}
+            <div style={{ marginTop: '3rem' }}>
+              <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.2rem', fontWeight: 600 }}>All Incidents</h2>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+                {items.map((item) => (
+                  <AlertCard key={item.id} alert={item} />
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </section>
     </>

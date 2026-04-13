@@ -1,5 +1,6 @@
 import { AlertItem, AlertCategory, OutageStatus } from '@/types/alert';
 import { XMLParser } from 'fast-xml-parser';
+import { mergeDowndetectorData } from './downdetector-integration';
 
 type FeedConfig = {
   url: string;
@@ -26,6 +27,24 @@ const feedConfigs: FeedConfig[] = [
     category: 'Microsoft Update',
     subcategory: 'Microsoft Security Blog',
     sourceName: 'Microsoft Security Blog',
+  },
+  {
+    url: 'https://status.aws.amazon.com/rss/all.rss',
+    category: 'Outage',
+    subcategory: 'AWS Status',
+    sourceName: 'AWS Health Dashboard',
+  },
+  {
+    url: 'https://www.githubstatus.com/history.rss',
+    category: 'Outage',
+    subcategory: 'GitHub Status',
+    sourceName: 'GitHub Status',
+  },
+  {
+    url: 'https://status.slack.com/feed',
+    category: 'Outage',
+    subcategory: 'Slack Status',
+    sourceName: 'Slack Status',
   },
 ];
 
@@ -149,10 +168,22 @@ function getLink(item: ParsedNode): string {
 }
 
 function normalizeStatus(text: string): OutageStatus {
-  if (/investigating/i.test(text)) return 'Investigating';
-  if (/identified/i.test(text)) return 'Identified';
-  if (/monitoring/i.test(text)) return 'Monitoring';
-  return 'Resolved';
+  const lowerText = text.toLowerCase();
+  
+  // Investigating patterns
+  if (/investigating|issue detected|started investigating/i.test(lowerText)) return 'Investigating';
+  
+  // Identified patterns
+  if (/identified|root cause|cause identified|we.*identified|we.*found|we.*located/i.test(lowerText)) return 'Identified';
+  
+  // Monitoring patterns
+  if (/monitoring|mitigating|implemented|deployment|fix deployed|applying|working on/i.test(lowerText)) return 'Monitoring';
+  
+  // Default resolved if doesn't match above
+  if (/resolved|recovering|recovered|restored|completed|closed|fixed/i.test(lowerText)) return 'Resolved';
+  
+  // If status unclear, assume investigating if recent, else monitoring
+  return 'Monitoring';
 }
 
 function summarizeText(text: string, maxLength = 260): string {
@@ -218,7 +249,10 @@ export async function fetchAlerts(): Promise<AlertItem[]> {
     }
   }
 
-  return allItems.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+  // Merge with Downdetector-style mock data
+  const merged = mergeDowndetectorData(allItems);
+
+  return merged.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 }
 
 // Fallback static data for development
