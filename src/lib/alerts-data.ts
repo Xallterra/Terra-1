@@ -1,4 +1,5 @@
 import { AlertItem, AlertCategory, OutageStatus } from '@/types/alert';
+import { XMLParser } from 'fast-xml-parser';
 
 type FeedConfig = {
   url: string;
@@ -28,8 +29,35 @@ const feedConfigs: FeedConfig[] = [
   },
 ];
 
-function getText(element: Element | null, selector: string): string {
-  return element?.querySelector(selector)?.textContent?.trim() || '';
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  textNodeName: '#text',
+  ignoreDeclaration: true,
+  trimValues: true,
+});
+
+function ensureArray<T>(value: T | T[] | undefined): T[] {
+  if (value === undefined || value === null) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function getText(value: any): string {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  return value['#text'] || value['@_value'] || '';
+}
+
+function getLink(item: any): string {
+  if (!item) return '';
+  if (typeof item.link === 'string') return item.link;
+  if (item.link?.href) return item.link.href;
+  if (item.link?.['@_href']) return item.link['@_href'];
+  if (Array.isArray(item.link)) {
+    const alternate = item.link.find((l: any) => l['@_rel'] === 'alternate' || l.rel === 'alternate');
+    return alternate?.href || alternate?.['@_href'] || getText(item.link[0]);
+  }
+  return getText(item.link);
 }
 
 function normalizeStatus(text: string): OutageStatus {
@@ -39,17 +67,20 @@ function normalizeStatus(text: string): OutageStatus {
   return 'Resolved';
 }
 
-function parseFeed(root: Document, config: FeedConfig): AlertItem[] {
-  const items = Array.from(root.querySelectorAll('item'));
+function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {
+  const parsed = xmlParser.parse(rawXml);
+  const rssItems = parsed?.rss?.channel?.item;
+  const atomItems = parsed?.feed?.entry;
+  const items = ensureArray(rssItems).concat(ensureArray(atomItems));
 
-  return items.map((item, index) => {
-    const link = getText(item, 'link');
-    const pubDate = getText(item, 'pubDate');
-    const title = getText(item, 'title') || 'Untitled';
-    const description = getText(item, 'description') || getText(item, 'summary');
-    const categoryTag = getText(item, 'category');
+  return items.map((item: any, index: number) => {
+    const title = getText(item.title) || 'Untitled';
+    const link = getLink(item);
+    const pubDate = getText(item.pubDate) || getText(item.updated) || getText(item.published);
+    const categoryTag = getText(item.category) || getText(item['dc:subject']);
+    const description = getText(item.description) || getText(item.summary) || getText(item.content);
     const slug = link ? link.split('/').filter(Boolean).pop() || `item-${index}` : `item-${index}`;
-    const status = config.category === 'Outage' ? normalizeStatus(description + ' ' + title) : undefined;
+    const status = config.category === 'Outage' ? normalizeStatus(`${title} ${description}`) : undefined;
 
     return {
       id: `${config.url}-${index}`,
@@ -85,8 +116,7 @@ export async function fetchAlerts(): Promise<AlertItem[]> {
       }
 
       const xml = await response.text();
-      const document = new DOMParser().parseFromString(xml, 'text/xml');
-      allItems.push(...parseFeed(document, config));
+      allItems.push(...parseFeed(xml, config));
     } catch (error) {
       console.error(`Error fetching feed ${config.url}:`, error);
     }
