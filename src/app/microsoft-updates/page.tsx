@@ -1,10 +1,14 @@
-import { alerts } from '@/lib/alerts-data';
 import { PageHero } from '@/components/shared/page-hero';
 import { AlertCard } from '@/components/alerts/alert-card';
 import { EmptyState } from '@/components/shared/empty-state';
+import { fetchAlerts } from '@/lib/alerts-data';
 
-export default function MicrosoftUpdatesPage() {
-  const items = alerts.filter((item) => item.category === 'Microsoft Update' || item.subcategory.match(/Windows|Intune|Azure|Defender|Microsoft 365/i));
+export const revalidate = 300;
+
+export default async function MicrosoftUpdatesPage() {
+  const alerts = await fetchAlerts();
+  const items = alerts.filter((item) => item.category === 'Microsoft Update');
+
   return (
     <>
       <PageHero title="Microsoft Updates" subtitle="Windows, Intune, Azure, Defender, and Microsoft 365 updates relevant to enterprise operations." />

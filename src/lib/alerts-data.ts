@@ -1,40 +1,94 @@
-import Parser from 'rss-parser';
-import { AlertItem } from '@/types/alert';
+import { AlertItem, AlertCategory, OutageStatus } from '@/types/alert';
 
-const parser = new Parser();
+type FeedConfig = {
+  url: string;
+  category: AlertCategory;
+  subcategory: string;
+  sourceName: string;
+};
+
+const feedConfigs: FeedConfig[] = [
+  {
+    url: 'https://status.azure.com/en-us/status/feed/',
+    category: 'Outage',
+    subcategory: 'Azure Status',
+    sourceName: 'Azure Status',
+  },
+  {
+    url: 'https://www.microsoft.com/en-us/microsoft-365/blog/feed/',
+    category: 'Microsoft Update',
+    subcategory: 'Microsoft 365 Blog',
+    sourceName: 'Microsoft 365 Blog',
+  },
+  {
+    url: 'https://www.microsoft.com/en-us/security/blog/feed/',
+    category: 'Microsoft Update',
+    subcategory: 'Microsoft Security Blog',
+    sourceName: 'Microsoft Security Blog',
+  },
+];
+
+function getText(element: Element | null, selector: string): string {
+  return element?.querySelector(selector)?.textContent?.trim() || '';
+}
+
+function normalizeStatus(text: string): OutageStatus {
+  if (/investigating/i.test(text)) return 'Investigating';
+  if (/identified/i.test(text)) return 'Identified';
+  if (/monitoring/i.test(text)) return 'Monitoring';
+  return 'Resolved';
+}
+
+function parseFeed(root: Document, config: FeedConfig): AlertItem[] {
+  const items = Array.from(root.querySelectorAll('item'));
+
+  return items.map((item, index) => {
+    const link = getText(item, 'link');
+    const pubDate = getText(item, 'pubDate');
+    const title = getText(item, 'title') || 'Untitled';
+    const description = getText(item, 'description') || getText(item, 'summary');
+    const categoryTag = getText(item, 'category');
+    const slug = link ? link.split('/').filter(Boolean).pop() || `item-${index}` : `item-${index}`;
+    const status = config.category === 'Outage' ? normalizeStatus(description + ' ' + title) : undefined;
+
+    return {
+      id: `${config.url}-${index}`,
+      slug,
+      title,
+      category: config.category,
+      subcategory: config.subcategory || categoryTag || 'Feed',
+      severity: config.category === 'Outage' ? undefined : 'Medium',
+      summary: description || 'No summary available.',
+      impact: config.category === 'Outage' ? 'Service disruption or outage event reported.' : 'Review the update details and guidance.',
+      recommended_action:
+        config.category === 'Outage'
+          ? 'Check the service health details and follow mitigation guidance.'
+          : 'Read the blog post for update guidance and deployment notes.',
+      source_name: config.sourceName,
+      source_url: link,
+      published_at: pubDate || new Date().toISOString(),
+      status,
+      tags: categoryTag ? [categoryTag] : [],
+    };
+  });
+}
 
 export async function fetchAlerts(): Promise<AlertItem[]> {
-  // Example RSS feeds - replace with actual feeds
-  const feeds = [
-    'https://www.cisa.gov/cybersecurity-advisories/all.xml', // CISA alerts
-    'https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml', // NVD CVEs
-    'https://www.microsoft.com/en-us/security/blog/feed/', // Microsoft Security Blog
-  ];
-
   const allItems: AlertItem[] = [];
 
-  for (const feedUrl of feeds) {
+  for (const config of feedConfigs) {
     try {
-      const feed = await parser.parseURL(feedUrl);
-      feed.items?.forEach((item, index) => {
-        allItems.push({
-          id: `${feedUrl}-${index}`,
-          slug: item.link?.split('/').pop() || `item-${index}`,
-          title: item.title || 'Untitled',
-          category: 'Vulnerability', // Map based on feed
-          subcategory: 'CVE',
-          severity: 'Medium', // Parse from content if possible
-          summary: item.contentSnippet || item.summary || '',
-          impact: 'TBD', // Parse from content
-          recommended_action: 'Review and apply patches',
-          source_name: feed.title || 'External Feed',
-          source_url: item.link || '',
-          published_at: item.pubDate || new Date().toISOString(),
-          tags: item.categories || [],
-        });
-      });
+      const response = await fetch(config.url);
+      if (!response.ok) {
+        console.error(`Feed fetch failed for ${config.url}: ${response.status}`);
+        continue;
+      }
+
+      const xml = await response.text();
+      const document = new DOMParser().parseFromString(xml, 'text/xml');
+      allItems.push(...parseFeed(document, config));
     } catch (error) {
-      console.error(`Error fetching feed ${feedUrl}:`, error);
+      console.error(`Error fetching feed ${config.url}:`, error);
     }
   }
 
