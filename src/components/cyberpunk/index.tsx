@@ -26,13 +26,20 @@ export function GlassPanel({
     none: '',
   }[neonBorder];
 
+  const glowMap = {
+    sm: '0 0 12px rgba(0, 240, 255, 0.08)',
+    md: '0 0 18px rgba(0, 240, 255, 0.12)',
+    lg: '0 0 28px rgba(0, 240, 255, 0.18)',
+  };
+
   return (
     <div
-      className={`glass-panel ${borderClass} ${className}`}
+      className={`glass-panel ${borderClass} ${hover ? 'glass-panel-hover' : ''} ${className}`}
       style={{
         background: 'rgba(15, 22, 39, 0.8)',
         backdropFilter: 'blur(10px)',
         transition: 'all 0.3s ease-out',
+        boxShadow: glowMap[glowIntensity],
       }}
     >
       {children}

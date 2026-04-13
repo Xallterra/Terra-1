@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 export function Footer() {
   return (
     <footer
@@ -48,19 +50,19 @@ export function Footer() {
             </h4>
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.4rem' }}>
               <li>
-                <a href="/alerts" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
+                <Link href="/alerts" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
                   Alerts
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/vulnerabilities" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
+                <Link href="/vulnerabilities" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
                   Vulnerabilities
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/outages" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
+                <Link href="/outages" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
                   Outages
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -72,14 +74,14 @@ export function Footer() {
             </h4>
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.4rem' }}>
               <li>
-                <a href="/about" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
+                <Link href="/about" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
                   About
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
+                <Link href="/contact" style={{ color: '#a0a8c0', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
