@@ -23,7 +23,7 @@ export function ContactForm() {
       body: JSON.stringify(payload)
     });
 
-    const result = await response.json();
+    const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       setState({ type: 'error', message: result.error ?? 'Submission failed.' });
