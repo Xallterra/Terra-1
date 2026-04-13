@@ -39,6 +39,17 @@ const xmlParser = new XMLParser({
 
 type ParsedNode = Record<string, unknown>;
 
+type ParsedFeed = ParsedNode & {
+  rss?: {
+    channel?: {
+      item?: unknown;
+    };
+  };
+  feed?: {
+    entry?: unknown;
+  };
+};
+
 type ParsedItem = ParsedNode & {
   title?: unknown;
   link?: unknown;
@@ -102,10 +113,10 @@ function normalizeStatus(text: string): OutageStatus {
 }
 
 function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {
-  const parsed = xmlParser.parse(rawXml) as ParsedNode;
+  const parsed = xmlParser.parse(rawXml) as ParsedFeed;
   const rssItems = parsed?.rss?.channel?.item;
   const atomItems = parsed?.feed?.entry;
-  const items = ensureArray<ParsedNode>(rssItems).concat(ensureArray<ParsedNode>(atomItems));
+  const items = ensureArray<ParsedItem>(rssItems).concat(ensureArray<ParsedItem>(atomItems));
 
   return items.map((item, index) => {
     const title = getText(item.title) || 'Untitled';
