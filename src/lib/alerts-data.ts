@@ -68,14 +68,57 @@ function ensureArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-function getText(value: unknown): string {
+function normalizeText(value: unknown): string {
   if (typeof value === 'string') return value;
-  if (typeof value === 'object' && value !== null) {
-    const node = value as ParsedNode;
-    const textValue = node['#text'] ?? node['@_value'];
-    return typeof textValue === 'string' ? textValue : '';
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (!value || typeof value !== 'object') return '';
+  if (Array.isArray(value)) return value.map(normalizeText).filter(Boolean).join(' ');
+
+  const node = value as ParsedNode;
+  const parts: string[] = [];
+
+  if (typeof node['#text'] === 'string') {
+    parts.push(node['#text']);
   }
-  return '';
+
+  for (const key of Object.keys(node)) {
+    if (key === '#text' || key.startsWith('@_')) continue;
+    parts.push(normalizeText(node[key]));
+  }
+
+  return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&(amp|lt|gt|quot|apos);/gi, (_, entity) => {
+      switch (entity.toLowerCase()) {
+        case 'amp':
+          return '&';
+        case 'lt':
+          return '<';
+        case 'gt':
+          return '>';
+        case 'quot':
+          return '"';
+        case 'apos':
+          return "'";
+        default:
+          return '';
+      }
+    })
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
+function stripHtmlTags(text: string): string {
+  return text.replace(/<[^>]+>/g, ' ');
+}
+
+function getText(value: unknown): string {
+  const rawText = normalizeText(value);
+  return decodeHtmlEntities(stripHtmlTags(rawText)).trim();
 }
 
 function getLink(item: ParsedNode): string {
@@ -112,10 +155,17 @@ function normalizeStatus(text: string): OutageStatus {
   return 'Resolved';
 }
 
+function summarizeText(text: string, maxLength = 260): string {
+  const trimmed = text.trim().replace(/\s+/g, ' ');
+  if (trimmed.length <= maxLength) return trimmed;
+  const shortened = trimmed.slice(0, maxLength).trim();
+  return `${shortened.replace(/[,;\s]+$/u, '')}…`;
+}
+
 function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {
   const parsed = xmlParser.parse(rawXml) as ParsedFeed;
-  const rssItems = parsed?.rss?.channel?.item;
-  const atomItems = parsed?.feed?.entry;
+  const rssItems = parsed?.rss?.channel?.item as ParsedItem | ParsedItem[] | undefined;
+  const atomItems = parsed?.feed?.entry as ParsedItem | ParsedItem[] | undefined;
   const items = ensureArray<ParsedItem>(rssItems).concat(ensureArray<ParsedItem>(atomItems));
 
   return items.map((item, index) => {
@@ -124,6 +174,7 @@ function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {
     const pubDate = getText(item.pubDate) || getText(item.updated) || getText(item.published);
     const categoryTag = getText(item.category) || getText(item['dc:subject']);
     const description = getText(item.description) || getText(item.summary) || getText(item.content);
+    const summary = description ? summarizeText(description) : 'No summary available.';
     const slug = link ? link.split('/').filter(Boolean).pop() || `item-${index}` : `item-${index}`;
     const status = config.category === 'Outage' ? normalizeStatus(`${title} ${description}`) : undefined;
 
@@ -134,7 +185,7 @@ function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {
       category: config.category,
       subcategory: config.subcategory || categoryTag || 'Feed',
       severity: config.category === 'Outage' ? undefined : 'Medium',
-      summary: description || 'No summary available.',
+      summary,
       impact: config.category === 'Outage' ? 'Service disruption or outage event reported.' : 'Review the update details and guidance.',
       recommended_action:
         config.category === 'Outage'
