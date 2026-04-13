@@ -3,9 +3,12 @@ import { getAlertBySlug } from '@/lib/alerts-data';
 import { SeverityBadge } from '@/components/alerts/severity-badge';
 import { StatusBadge } from '@/components/alerts/status-badge';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 300;
+
 export default async function AlertDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const alert = getAlertBySlug(slug);
+  const alert = await getAlertBySlug(slug);
 
   if (!alert) notFound();
 

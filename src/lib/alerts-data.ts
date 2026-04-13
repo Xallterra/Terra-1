@@ -244,4 +244,13 @@ export const alerts: AlertItem[] = [
   // Add more items as needed
 ];
 
-export const getAlertBySlug = (slug: string) => alerts.find((item) => item.slug === slug);
+export async function getAlertBySlug(slug: string): Promise<AlertItem | undefined> {
+  const normalizedSlug = decodeURIComponent(slug).replace(/\/+/g, '/').replace(/\/$/, '');
+  const matchesSlug = (item: AlertItem) => {
+    const itemSlug = decodeURIComponent(item.slug).replace(/\/+/g, '/').replace(/\/$/, '');
+    return itemSlug === normalizedSlug;
+  };
+
+  const dynamicAlerts = await fetchAlerts();
+  return dynamicAlerts.find(matchesSlug) || alerts.find(matchesSlug);
+}
