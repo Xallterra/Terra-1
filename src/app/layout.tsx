@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { LayoutClient } from './layout-client';
 
 export const metadata: Metadata = {
   title: 'Makriva | Real-Time IT Alerts & Update Intelligence',
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Header />
-        <main>{children}</main>
+        <main>
+          <LayoutClient>{children}</LayoutClient>
+        </main>
         <Footer />
       </body>
     </html>
