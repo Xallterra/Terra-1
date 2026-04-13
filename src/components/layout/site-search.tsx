@@ -27,6 +27,7 @@ export function SiteSearch() {
 
   return (
     <form
+      className="site-search"
       onSubmit={handleSubmit}
       style={{
         display: 'flex',
@@ -36,6 +37,24 @@ export function SiteSearch() {
         flex: pathname === '/' ? '0 1 23rem' : '0 1 20rem',
       }}
     >
+      <style>{`
+        @media (max-width: 960px) {
+          .site-search {
+            width: 100%;
+            flex: 1 1 100%;
+          }
+        }
+        @media (max-width: 640px) {
+          .site-search {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .site-search button {
+            width: 100%;
+          }
+        }
+      `}</style>
+
       <input
         aria-label="Search the website"
         className="input"

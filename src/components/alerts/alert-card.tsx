@@ -49,6 +49,7 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
 
   return (
     <article
+      className="alert-card"
       style={{
         background: 'linear-gradient(135deg, rgba(15, 22, 39, 0.9), rgba(25, 35, 55, 0.8))',
         borderLeft: `4px solid ${badgeStyle.borderColor}`,
@@ -67,7 +68,7 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         const el = e.currentTarget as HTMLElement;
         el.style.borderColor = badgeStyle.borderColor;
         el.style.boxShadow = badgeStyle.glowColor;
-        el.style.background = `linear-gradient(135deg, rgba(15, 22, 39, 1), rgba(25, 45, 75, 0.9))`;
+        el.style.background = 'linear-gradient(135deg, rgba(15, 22, 39, 1), rgba(25, 45, 75, 0.9))';
         el.style.transform = 'translateY(-4px)';
       }}
       onMouseLeave={(e) => {
@@ -78,7 +79,25 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         el.style.transform = 'translateY(0)';
       }}
     >
-      {/* Scan line effect on hover */}
+      <style>{`
+        @media (max-width: 768px) {
+          .alert-card {
+            padding: 1.1rem !important;
+          }
+          .alert-card time,
+          .alert-card a {
+            font-size: 0.78rem !important;
+          }
+        }
+        @media (max-width: 520px) {
+          .alert-card__footer {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.5rem;
+          }
+        }
+      `}</style>
+
       <div
         style={{
           position: 'absolute',
@@ -93,7 +112,6 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         }}
       />
 
-      {/* Badge section */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <span
           style={{
@@ -115,7 +133,6 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         {alert.status && <StatusBadge status={alert.status} />}
       </div>
 
-      {/* Title */}
       <h3
         style={{
           margin: 0,
@@ -129,7 +146,6 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         {alert.title}
       </h3>
 
-      {/* Summary */}
       <p
         style={{
           margin: 0,
@@ -145,8 +161,7 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
         {alert.summary}
       </p>
 
-      {/* Footer with timestamp and link */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+      <div className="alert-card__footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', gap: '0.75rem' }}>
         <time
           style={{
             fontSize: '0.8rem',

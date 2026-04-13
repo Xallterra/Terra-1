@@ -42,17 +42,45 @@ export function OutageTimeline({ outages }: { outages: AlertItem[] }) {
             return (
               <div
                 key={outage.id}
-                className="card"
+                className="card outage-timeline__item"
                 style={{
                   padding: '1rem',
                   borderLeft: `4px solid ${getStatusColor(outage.status)}`,
                   opacity: isLatest ? 1 : 0.8,
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem' }}>
+                <style>{`
+                  @media (max-width: 768px) {
+                    .outage-timeline__item {
+                      padding: 0.95rem !important;
+                    }
+                    .outage-timeline__row {
+                      flex-direction: column;
+                    }
+                    .outage-timeline__meta {
+                      width: 100%;
+                      text-align: left !important;
+                    }
+                    .outage-timeline__status-row {
+                      flex-wrap: wrap;
+                    }
+                  }
+                `}</style>
+
+                <div className="outage-timeline__row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <span style={{ fontSize: '1.2rem' }}>{getStatusIcon(outage.status)}</span>
+                    <div className="outage-timeline__status-row" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span
+                        style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.12em',
+                          textTransform: 'uppercase',
+                          color: getStatusColor(outage.status),
+                        }}
+                      >
+                        {getStatusIcon(outage.status)}
+                      </span>
                       <span
                         style={{
                           fontSize: '0.75rem',
@@ -81,7 +109,7 @@ export function OutageTimeline({ outages }: { outages: AlertItem[] }) {
                     <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', fontWeight: 600 }}>{outage.title}</h4>
                     <p style={{ margin: 0, color: '#a2b2cd', fontSize: '0.875rem', lineHeight: 1.5 }}>{outage.summary}</p>
                   </div>
-                  <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <div className="outage-timeline__meta" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     <div style={{ fontSize: '0.75rem', color: '#8798b7' }}>
                       {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>

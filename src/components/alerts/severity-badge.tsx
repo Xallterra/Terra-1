@@ -38,7 +38,7 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: '0.5px',
-        border: `1px solid`,
+        border: '1px solid',
         display: 'inline-flex',
         alignItems: 'center',
         gap: '0.35rem',
@@ -46,7 +46,7 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
         ...styles[severity],
       }}
     >
-      ⚠ {severity}
+      ALERT {severity}
     </span>
   );
 }
