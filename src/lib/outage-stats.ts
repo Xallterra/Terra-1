@@ -40,15 +40,15 @@ export function getStatusColor(status?: OutageStatus): string {
 export function getStatusIcon(status?: OutageStatus): string {
   switch (status) {
     case 'Investigating':
-      return '🔍';
+      return 'SCAN';
     case 'Identified':
-      return '⚠️';
+      return 'WARN';
     case 'Monitoring':
-      return '📡';
+      return 'MON';
     case 'Resolved':
-      return '✅';
+      return 'OK';
     default:
-      return '❓';
+      return 'INFO';
   }
 }
 

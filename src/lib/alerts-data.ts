@@ -4,6 +4,7 @@ import { AlertItem, AlertCategory, OutageStatus } from '@/types/alert';
 import { XMLParser } from 'fast-xml-parser';
 import { mergeDowndetectorData, loadCustomIncidents, filterLowQualityContent } from './downdetector-integration';
 import { alerts } from './static-alerts';
+import { formatAlertText, summarizeAlertText } from './alert-text';
 
 type FeedConfig = {
   url: string;
@@ -112,36 +113,9 @@ function normalizeText(value: unknown): string {
   return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
 }
 
-function decodeHtmlEntities(text: string): string {
-  return text
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&(amp|lt|gt|quot|apos);/gi, (_, entity) => {
-      switch (entity.toLowerCase()) {
-        case 'amp':
-          return '&';
-        case 'lt':
-          return '<';
-        case 'gt':
-          return '>';
-        case 'quot':
-          return '"';
-        case 'apos':
-          return "'";
-        default:
-          return '';
-      }
-    })
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
-}
-
-function stripHtmlTags(text: string): string {
-  return text.replace(/<[^>]+>/g, ' ');
-}
-
 function getText(value: unknown): string {
   const rawText = normalizeText(value);
-  return decodeHtmlEntities(stripHtmlTags(rawText)).trim();
+  return formatAlertText(rawText);
 }
 
 function getLink(item: ParsedNode): string {
@@ -191,10 +165,7 @@ function normalizeStatus(text: string): OutageStatus {
 }
 
 function summarizeText(text: string, maxLength = 260): string {
-  const trimmed = text.trim().replace(/\s+/g, ' ');
-  if (trimmed.length <= maxLength) return trimmed;
-  const shortened = trimmed.slice(0, maxLength).trim();
-  return `${shortened.replace(/[,;\s]+$/u, '')}…`;
+  return summarizeAlertText(text, maxLength);
 }
 
 function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {

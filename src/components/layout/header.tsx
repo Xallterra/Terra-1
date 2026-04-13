@@ -1,8 +1,10 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
+import { SiteSearch } from './site-search';
 
 const links: { href: Route; label: string }[] = [
   { href: '/', label: 'Dashboard' },
@@ -62,6 +64,8 @@ export function Header() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
           padding: '1rem 2rem',
           maxWidth: '100%',
         }}
@@ -89,64 +93,89 @@ export function Header() {
           <span style={{ fontSize: '1.2rem' }}>⏢</span> MAKRIVA
         </Link>
 
-        {/* Navigation */}
-        <nav
-          style={{
-            display: 'flex',
-            gap: '2rem',
-            flexWrap: 'wrap',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-          }}
-        >
-          {links.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`nav-glow ${isActive ? 'active' : ''}`}
-                style={{
-                  color: isActive ? '#00f0ff' : '#a0a0c0',
-                  fontSize: '0.9rem',
-                  textDecoration: 'none',
-                  fontWeight: isActive ? 600 : 500,
-                  letterSpacing: isActive ? '0.5px' : '0px',
-                  textShadow: isActive ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none',
-                  transition: 'all 0.3s ease-out',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Status indicator */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            marginLeft: '1.5rem',
-            paddingLeft: '1.5rem',
-            borderLeft: '1px solid rgba(0, 240, 255, 0.2)',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-end',
+            flex: '1 1 42rem',
           }}
         >
+          <nav
+            style={{
+              display: 'flex',
+              gap: '1.4rem',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+            }}
+          >
+            {links.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-glow ${isActive ? 'active' : ''}`}
+                  style={{
+                    color: isActive ? '#00f0ff' : '#a0a0c0',
+                    fontSize: '0.9rem',
+                    textDecoration: 'none',
+                    fontWeight: isActive ? 600 : 500,
+                    letterSpacing: isActive ? '0.5px' : '0px',
+                    textShadow: isActive ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none',
+                    transition: 'all 0.3s ease-out',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <Suspense
+            fallback={
+              <div
+                style={{
+                  minWidth: '20rem',
+                  flex: '0 1 20rem',
+                  height: '2.9rem',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(0, 240, 255, 0.18)',
+                  background: 'rgba(11, 17, 30, 0.62)',
+                }}
+              />
+            }
+          >
+            <SiteSearch />
+          </Suspense>
+
           <div
             style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: '#39ff14',
-              boxShadow: '0 0 10px #39ff14',
-              animation: 'pulse 2s ease-in-out infinite',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              paddingLeft: '1rem',
+              borderLeft: '1px solid rgba(0, 240, 255, 0.2)',
             }}
-          />
-          <span style={{ fontSize: '0.75rem', color: '#39ff14', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Online
-          </span>
+          >
+            <div
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#39ff14',
+                boxShadow: '0 0 10px #39ff14',
+                animation: 'pulse 2s ease-in-out infinite',
+              }}
+            />
+            <span style={{ fontSize: '0.75rem', color: '#39ff14', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Online
+            </span>
+          </div>
         </div>
       </div>
 

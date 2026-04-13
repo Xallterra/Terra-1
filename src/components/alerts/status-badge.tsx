@@ -30,10 +30,10 @@ const styles: Record<OutageStatus, CSSProperties> = {
 
 export function StatusBadge({ status }: { status: OutageStatus }) {
   const statusIcons = {
-    Investigating: '🔍',
-    Identified: '⚠️',
-    Monitoring: '👁️',
-    Resolved: '✓',
+    Investigating: 'SCAN',
+    Identified: 'WARN',
+    Monitoring: 'MON',
+    Resolved: 'OK',
   };
 
   return (

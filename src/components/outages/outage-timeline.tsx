@@ -23,7 +23,7 @@ export function OutageTimeline({ outages }: { outages: AlertItem[] }) {
                   border: '1px solid #334155',
                 }}
               >
-                📦 {service}
+                {service}
               </span>
             ))}
           </div>

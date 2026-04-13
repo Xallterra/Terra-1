@@ -177,7 +177,7 @@ export function AlertCard({ alert }: { alert: AlertItem }) {
             e.currentTarget.style.textShadow = `0 0 10px ${badgeStyle.baseGlow}`;
           }}
         >
-          Details <span style={{ fontSize: '0.9rem' }}>→</span>
+          Details <span style={{ fontSize: '0.9rem' }}>{'->'}</span>
         </Link>
       </div>
     </article>
