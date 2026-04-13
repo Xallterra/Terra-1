@@ -1,6 +1,6 @@
 import { AlertItem, AlertCategory, OutageStatus } from '@/types/alert';
 import { XMLParser } from 'fast-xml-parser';
-import { mergeDowndetectorData } from './downdetector-integration';
+import { mergeDowndetectorData, loadCustomIncidents, filterLowQualityContent } from './downdetector-integration';
 
 type FeedConfig = {
   url: string;
@@ -249,8 +249,14 @@ export async function fetchAlerts(): Promise<AlertItem[]> {
     }
   }
 
-  // Merge with Downdetector-style mock data
-  const merged = mergeDowndetectorData(allItems);
+  // Load custom incidents from public/data/incidents.json
+  await loadCustomIncidents();
+
+  // Filter out low-quality feed content
+  const filtered = filterLowQualityContent(allItems);
+
+  // Merge with Downdetector-style custom data
+  const merged = mergeDowndetectorData(filtered);
 
   return merged.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 }

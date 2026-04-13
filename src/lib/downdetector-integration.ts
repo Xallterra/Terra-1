@@ -3,96 +3,97 @@ import { AlertItem } from '@/types/alert';
 /**
  * Downdetector Integration Reference
  * 
- * This module provides helper utilities and mock data for Downdetector-style outage tracking.
+ * This module provides helper utilities and customizable incident data.
  * Downdetector doesn't have a public API, but we can:
  * 
  * 1. Aggregate real service status feeds (Azure, AWS, GitHub, Slack, etc.)
- * 2. Parse Downdetector's publicly available status pages using scraping
- * 3. Maintain manual feeds of popular outages
+ * 2. Load custom incidents from public/data/incidents.json
+ * 3. Parse Downdetector's publicly available status pages using scraping
+ * 4. Maintain manageable incident feeds
  * 
  * The main outage data is currently sourced from:
  * - Azure Status Feed
  * - AWS Health Dashboard (RSS)
  * - GitHub Status Feed
  * - Slack Status Feed
+ * - Custom incidents from public/data/incidents.json
  */
 
-export const downdetectorMockData: AlertItem[] = [
-  {
-    id: 'dd-meta-001',
-    slug: 'meta-services-outage-2026-04-09',
-    title: 'Meta Services Global Outage',
-    category: 'Outage',
-    subcategory: 'Meta (Facebook, Instagram, WhatsApp)',
-    severity: 'Critical',
-    summary:
-      'Widespread outage affecting Meta services globally. Users unable to access Facebook, Instagram, and Messenger. Estimated 100M+ users impacted.',
-    impact:
-      'All Meta services (Facebook, Instagram, Messenger, WhatsApp) experiencing severe availability issues. Users unable to send messages, upload content, or access feeds.',
-    recommended_action:
-      'Check Meta status page for updates. Avoid critical communications via Meta platforms. Use alternative messaging services.',
-    source_name: 'Downdetector (Community Reports)',
-    source_url: 'https://downdetector.com/status/facebook/',
-    published_at: '2026-04-09T14:32:00Z',
-    status: 'Resolved',
-    tags: ['Facebook', 'Instagram', 'Messenger', 'WhatsApp', 'Meta'],
-  },
-  {
-    id: 'dd-google-002',
-    slug: 'google-services-partial-outage-2026-04-08',
-    title: 'Google Cloud Services Partial Outage',
-    category: 'Outage',
-    subcategory: 'Google Cloud',
-    severity: 'High',
-    summary:
-      'Google Cloud experiencing intermittent connectivity issues affecting GCP services in US-Central region. Performance degradation reported.',
-    impact:
-      'GCP services in us-central1 region experiencing 5-15% packet loss. Affected services: Compute Engine, Cloud Storage, Cloud SQL.',
-    recommended_action:
-      'Failover workloads to alternate regions. Monitor Google Cloud Status dashboard for updates.',
-    source_name: 'Downdetector (Community Reports)',
-    source_url: 'https://downdetector.com/status/google-cloud/',
-    published_at: '2026-04-08T09:15:00Z',
-    status: 'Monitoring',
-    tags: ['Google Cloud', 'GCP', 'Compute', 'Storage'],
+let customIncidents: AlertItem[] = [];
+
+/**
+ * Load custom incidents from public/data/incidents.json
+ * This allows non-technical users to add/update incidents without code changes
+ */
+export async function loadCustomIncidents(): Promise<AlertItem[]> {
+  try {
+    const response = await fetch('/data/incidents.json');
+    if (!response.ok) {
+      console.warn('Could not load custom incidents data');
+      return [];
+    }
+
+    const data = await response.json();
+    if (!Array.isArray(data.incidents)) {
+      console.warn('Invalid incidents data format');
+      return [];
+    }
+
+    // Filter out resolved incidents older than 24 hours
+    const now = Date.now();
+    customIncidents = data.incidents.filter((item: AlertItem) => {
+      if (item.status === 'Resolved') {
+        const age = now - new Date(item.published_at).getTime();
+        return age < 24 * 60 * 60 * 1000; // Keep for 24 hours
+      }
+      return true; // Keep active incidents
+    });
+
+    return customIncidents;
+  } catch (error) {
+    console.error('Error loading custom incidents:', error);
+    return [];
   }
-];
+}
 
 /**
- * To add Downdetector as a full data source:
- * 
- * Option 1: Manual Feed Updates
- * - Update downdetectorMockData periodically with real incidents
- * - Track status updates through Downdetector website
- * 
- * Option 2: Community Data Integration
- * - Integrate with service status pages that aggregate Downdetector reports
- * - Use Statuspage.io feeds where available
- * 
- * Option 3: API Integration (if Downdetector provides one)
- * - Add API endpoint to feedConfigs
- * - Parse JSON responses instead of XML
- */
-
-/**
- * Helper function to merge Downdetector data with feed data
+ * Helper function to merge custom incident data with feed data
  */
 export function mergeDowndetectorData(feedAlerts: AlertItem[]): AlertItem[] {
-  // Filter out resolved incidents older than 24 hours
-  const recentDowndetector = downdetectorMockData.filter((item) => {
-    if (item.status === 'Resolved') {
-      const age = Date.now() - new Date(item.published_at).getTime();
-      return age < 24 * 60 * 60 * 1000; // Keep for 24 hours
-    }
-    return true; // Keep active incidents
-  });
-
-  // Combine and deduplicate by title
-  const combined = [...feedAlerts, ...recentDowndetector];
+  // Combine and deduplicate by title + source
+  const combined = [...feedAlerts, ...customIncidents];
   const seen = new Set<string>();
+
   return combined.filter((alert) => {
-    if (seen.has(alert.title)) return false;
-    seen.add(alert.title);
+    const key = `${alert.title}|${alert.source_name}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * Filter low-quality feed content
+ */
+export function filterLowQualityContent(alerts: AlertItem[]): AlertItem[] {
+  return alerts.filter((alert) => {
+    // Skip if title is too short or generic
+    if (!alert.title || alert.title.length < 5) return false;
+    if (/untitled|no title|unknown|test|demo/i.test(alert.title)) return false;
+
+    // Skip if summary is missing or too short
+    if (!alert.summary || alert.summary.length < 10) return false;
+    if (alert.summary === 'No summary available.') {
+      console.debug(`Filtered low-quality alert: ${alert.title}`);
+      return false;
+    }
+
+    // Skip duplicates with exact same content
+    if (alert.summary.includes('...placeholder') || alert.summary.includes('...')) {
+      // Only skip if it's obviously truncated with no real content
+      return alert.summary.length > 50;
+    }
+
     return true;
   });
 }

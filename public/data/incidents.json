@@ -1,0 +1,39 @@
+{
+  "incidents": [
+    {
+      "id": "dd-meta-001",
+      "slug": "meta-services-outage-2026-04-09",
+      "title": "Meta Services Global Outage",
+      "category": "Outage",
+      "subcategory": "Meta (Facebook, Instagram, WhatsApp)",
+      "severity": "Critical",
+      "summary": "Widespread outage affecting Meta services globally. Users unable to access Facebook, Instagram, and Messenger. Estimated 100M+ users impacted.",
+      "impact": "All Meta services (Facebook, Instagram, Messenger, WhatsApp) experiencing severe availability issues. Users unable to send messages, upload content, or access feeds.",
+      "recommended_action": "Check Meta status page for updates. Avoid critical communications via Meta platforms. Use alternative messaging services.",
+      "source_name": "Community Reports (Downdetector-style)",
+      "source_url": "https://downdetector.com/status/facebook/",
+      "published_at": "2026-04-09T14:32:00Z",
+      "status": "Resolved",
+      "tags": ["Facebook", "Instagram", "Messenger", "WhatsApp", "Meta"]
+    },
+    {
+      "id": "dd-google-002",
+      "slug": "google-services-partial-outage-2026-04-08",
+      "title": "Google Cloud Services Partial Outage",
+      "category": "Outage",
+      "subcategory": "Google Cloud",
+      "severity": "High",
+      "summary": "Google Cloud experiencing intermittent connectivity issues affecting GCP services in US-Central region. Performance degradation reported.",
+      "impact": "GCP services in us-central1 region experiencing 5-15% packet loss. Affected services: Compute Engine, Cloud Storage, Cloud SQL.",
+      "recommended_action": "Failover workloads to alternate regions. Monitor Google Cloud Status dashboard for updates.",
+      "source_name": "Community Reports (Downdetector-style)",
+      "source_url": "https://downdetector.com/status/google-cloud/",
+      "published_at": "2026-04-08T09:15:00Z",
+      "status": "Monitoring",
+      "tags": ["Google Cloud", "GCP", "Compute", "Storage"]
+    }
+  ],
+  "version": 1,
+  "last_updated": "2026-04-12T00:00:00Z",
+  "notes": "Edit this file to add or update custom outage incidents. Format: ISO 8601 dates, match AlertItem type schema."
+}

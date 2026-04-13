@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './cyberpunk.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { LayoutClient } from './layout-client';
@@ -13,9 +14,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Header />
-        <main>
+        <main style={{ flex: 1, padding: '2rem 1rem' }}>
           <LayoutClient>{children}</LayoutClient>
         </main>
         <Footer />
