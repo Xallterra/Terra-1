@@ -37,27 +37,61 @@ const xmlParser = new XMLParser({
   trimValues: true,
 });
 
+type ParsedNode = Record<string, unknown>;
+
+type ParsedItem = ParsedNode & {
+  title?: unknown;
+  link?: unknown;
+  pubDate?: unknown;
+  updated?: unknown;
+  published?: unknown;
+  category?: unknown;
+  'dc:subject'?: unknown;
+  description?: unknown;
+  summary?: unknown;
+  content?: unknown;
+};
+
 function ensureArray<T>(value: T | T[] | undefined): T[] {
   if (value === undefined || value === null) return [];
   return Array.isArray(value) ? value : [value];
 }
 
-function getText(value: any): string {
-  if (!value) return '';
+function getText(value: unknown): string {
   if (typeof value === 'string') return value;
-  return value['#text'] || value['@_value'] || '';
+  if (typeof value === 'object' && value !== null) {
+    const node = value as ParsedNode;
+    const textValue = node['#text'] ?? node['@_value'];
+    return typeof textValue === 'string' ? textValue : '';
+  }
+  return '';
 }
 
-function getLink(item: any): string {
+function getLink(item: ParsedNode): string {
   if (!item) return '';
-  if (typeof item.link === 'string') return item.link;
-  if (item.link?.href) return item.link.href;
-  if (item.link?.['@_href']) return item.link['@_href'];
-  if (Array.isArray(item.link)) {
-    const alternate = item.link.find((l: any) => l['@_rel'] === 'alternate' || l.rel === 'alternate');
-    return alternate?.href || alternate?.['@_href'] || getText(item.link[0]);
+  const link = item.link;
+  if (typeof link === 'string') return link;
+  if (typeof link === 'object' && link !== null) {
+    const linkObj = link as ParsedNode;
+    if (typeof linkObj.href === 'string') return linkObj.href;
+    if (typeof linkObj['@_href'] === 'string') return linkObj['@_href'];
   }
-  return getText(item.link);
+  if (Array.isArray(link)) {
+    const alternate = link.find((l) => {
+      if (typeof l !== 'object' || l === null) return false;
+      const node = l as ParsedNode;
+      return node['@_rel'] === 'alternate' || node.rel === 'alternate';
+    }) as ParsedNode | undefined;
+
+    if (alternate) {
+      if (typeof alternate.href === 'string') return alternate.href;
+      if (typeof alternate['@_href'] === 'string') return alternate['@_href'];
+    }
+
+    return getText(link[0]);
+  }
+
+  return getText(link);
 }
 
 function normalizeStatus(text: string): OutageStatus {
@@ -68,12 +102,12 @@ function normalizeStatus(text: string): OutageStatus {
 }
 
 function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {
-  const parsed = xmlParser.parse(rawXml);
+  const parsed = xmlParser.parse(rawXml) as ParsedNode;
   const rssItems = parsed?.rss?.channel?.item;
   const atomItems = parsed?.feed?.entry;
-  const items = ensureArray(rssItems).concat(ensureArray(atomItems));
+  const items = ensureArray<ParsedNode>(rssItems).concat(ensureArray<ParsedNode>(atomItems));
 
-  return items.map((item: any, index: number) => {
+  return items.map((item, index) => {
     const title = getText(item.title) || 'Untitled';
     const link = getLink(item);
     const pubDate = getText(item.pubDate) || getText(item.updated) || getText(item.published);
