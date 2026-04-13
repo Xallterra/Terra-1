@@ -1,3 +1,6 @@
+import { readFile } from 'fs/promises';
+import path from 'path';
+
 import { AlertItem } from '@/types/alert';
 
 /**
@@ -27,13 +30,10 @@ let customIncidents: AlertItem[] = [];
  */
 export async function loadCustomIncidents(): Promise<AlertItem[]> {
   try {
-    const response = await fetch('/data/incidents.json');
-    if (!response.ok) {
-      console.warn('Could not load custom incidents data');
-      return [];
-    }
+    const filePath = path.join(process.cwd(), 'public', 'data', 'incidents.json');
+    const fileContents = await readFile(filePath, 'utf8');
+    const data = JSON.parse(fileContents) as { incidents?: AlertItem[] };
 
-    const data = await response.json();
     if (!Array.isArray(data.incidents)) {
       console.warn('Invalid incidents data format');
       return [];

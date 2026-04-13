@@ -1,4 +1,4 @@
-import { alerts } from '@/lib/alerts-data';
+import { alerts } from '@/lib/static-alerts';
 import { AlertCard } from '@/components/alerts/alert-card';
 
 export function LatestAlerts() {

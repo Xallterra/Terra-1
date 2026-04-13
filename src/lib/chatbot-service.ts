@@ -1,5 +1,5 @@
 import { AlertItem } from '@/types/alert';
-import { alerts } from './alerts-data';
+import { alerts } from './static-alerts';
 
 export type ChatMessage = {
   id: string;

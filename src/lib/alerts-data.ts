@@ -1,6 +1,9 @@
+import { cache } from 'react';
+
 import { AlertItem, AlertCategory, OutageStatus } from '@/types/alert';
 import { XMLParser } from 'fast-xml-parser';
 import { mergeDowndetectorData, loadCustomIncidents, filterLowQualityContent } from './downdetector-integration';
+import { alerts } from './static-alerts';
 
 type FeedConfig = {
   url: string;
@@ -54,6 +57,7 @@ const xmlParser = new XMLParser({
   textNodeName: '#text',
   ignoreDeclaration: true,
   trimValues: true,
+  processEntities: false,
 });
 
 type ParsedNode = Record<string, unknown>;
@@ -231,23 +235,29 @@ function parseFeed(rawXml: string, config: FeedConfig): AlertItem[] {
   });
 }
 
-export async function fetchAlerts(): Promise<AlertItem[]> {
-  const allItems: AlertItem[] = [];
+async function fetchFeed(config: FeedConfig): Promise<AlertItem[]> {
+  try {
+    const response = await fetch(config.url, {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(15000),
+    });
 
-  for (const config of feedConfigs) {
-    try {
-      const response = await fetch(config.url);
-      if (!response.ok) {
-        console.error(`Feed fetch failed for ${config.url}: ${response.status}`);
-        continue;
-      }
-
-      const xml = await response.text();
-      allItems.push(...parseFeed(xml, config));
-    } catch (error) {
-      console.error(`Error fetching feed ${config.url}:`, error);
+    if (!response.ok) {
+      console.error(`Feed fetch failed for ${config.url}: ${response.status}`);
+      return [];
     }
+
+    const xml = await response.text();
+    return parseFeed(xml, config);
+  } catch (error) {
+    console.error(`Error fetching feed ${config.url}:`, error);
+    return [];
   }
+}
+
+export const fetchAlerts = cache(async (): Promise<AlertItem[]> => {
+  const feedResults = await Promise.all(feedConfigs.map((config) => fetchFeed(config)));
+  const allItems = feedResults.flat();
 
   // Load custom incidents from public/data/incidents.json
   await loadCustomIncidents();
@@ -259,30 +269,7 @@ export async function fetchAlerts(): Promise<AlertItem[]> {
   const merged = mergeDowndetectorData(filtered);
 
   return merged.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
-}
-
-// Fallback static data for development
-export const alerts: AlertItem[] = [
-  {
-    id: '1',
-    slug: 'windows-update-vpn-failures-kb507001',
-    title: 'Windows Update Causing VPN Failures in Enterprise Networks',
-    category: 'Microsoft Update',
-    subcategory: 'Windows',
-    severity: 'High',
-    summary:
-      'Reports indicate KB507001 can interrupt split-tunnel VPN connectivity for domain-joined endpoints.',
-    impact:
-      'Remote employees may lose access to internal resources and line-of-business applications.',
-    recommended_action:
-      'Pause broad deployment, scope impacted VPN profiles, and test mitigation policy before resuming rollout.',
-    source_name: 'Makriva Intelligence Desk',
-    source_url: 'https://makriva.example/sources/windows-kb507001',
-    published_at: '2026-04-10T14:20:00Z',
-    tags: ['Windows 11', 'Patch Tuesday', 'VPN']
-  },
-  // Add more items as needed
-];
+});
 
 export async function getAlertBySlug(slug: string): Promise<AlertItem | undefined> {
   const normalizedSlug = decodeURIComponent(slug).replace(/\/+/g, '/').replace(/\/$/, '');
