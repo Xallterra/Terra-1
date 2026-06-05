@@ -13,6 +13,29 @@ type FeedConfig = {
   sourceName: string;
 };
 
+type CisaKevEntry = {
+  cveID?: string;
+  cveName?: string;
+  vendorProject?: string;
+  product?: string;
+  vulnerabilityName?: string;
+  dateAdded?: string;
+  shortDescription?: string;
+  requiredAction?: string;
+  dueDate?: string;
+  knownRansomwareCampaignUse?: string;
+  notes?: string;
+  cwes?: string[];
+};
+
+type CisaKevCatalog = {
+  title?: string;
+  catalogVersion?: string;
+  dateReleased?: string;
+  count?: number;
+  vulnerabilities?: CisaKevEntry[];
+};
+
 const feedConfigs: FeedConfig[] = [
   {
     url: 'https://status.azure.com/en-us/status/feed/',
@@ -226,9 +249,82 @@ async function fetchFeed(config: FeedConfig): Promise<AlertItem[]> {
   }
 }
 
+function inferVulnerabilitySeverity(entry: CisaKevEntry): AlertItem['severity'] {
+  const text = `${entry.vulnerabilityName ?? ''} ${entry.shortDescription ?? ''} ${entry.requiredAction ?? ''}`.toLowerCase();
+  if ((entry.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known') return 'Critical';
+  if (/remote code execution|rce|command injection|deserialization|authentication bypass|zero.?day/i.test(text)) return 'Critical';
+  if (/privilege escalation|bypass|path traversal|sql injection|xss|memory corruption/i.test(text)) return 'High';
+  return 'High';
+}
+
+function cisaKevToAlert(entry: CisaKevEntry, index: number): AlertItem {
+  const cve = entry.cveID ?? entry.cveName ?? `CVE-unknown-${index}`;
+  const vendor = entry.vendorProject ?? 'Unknown vendor';
+  const product = entry.product ?? 'Unknown product';
+  const title = `${cve}: ${entry.vulnerabilityName ?? `${vendor} ${product} exploited vulnerability`}`;
+  const publishedAt = entry.dateAdded ? new Date(entry.dateAdded).toISOString() : new Date().toISOString();
+  const ransomware = entry.knownRansomwareCampaignUse ? ` Ransomware campaign use: ${entry.knownRansomwareCampaignUse}.` : '';
+  const dueDate = entry.dueDate ? ` Federal remediation due date: ${entry.dueDate}.` : '';
+
+  return {
+    id: `cisa-kev-${cve}`,
+    slug: `cisa-kev-${cve.toLowerCase()}`,
+    title,
+    category: 'Vulnerability',
+    subcategory: `${vendor} / ${product}`,
+    severity: inferVulnerabilitySeverity(entry),
+    summary: summarizeText(entry.shortDescription || `${vendor} ${product} vulnerability listed in CISA Known Exploited Vulnerabilities catalog.`),
+    impact: `CISA lists ${cve} as known exploited in the wild for ${vendor} ${product}.${ransomware}${dueDate}`,
+    recommended_action:
+      entry.requiredAction ||
+      'Prioritize remediation according to CISA KEV guidance, vendor advisories, exposure, exploitability, and business criticality.',
+    source_name: 'CISA Known Exploited Vulnerabilities Catalog',
+    source_url: `https://nvd.nist.gov/vuln/detail/${encodeURIComponent(cve)}`,
+    published_at: publishedAt,
+    tags: [cve, vendor, product, 'CISA KEV', ...(entry.cwes ?? [])].filter(Boolean),
+  };
+}
+
+async function fetchCisaKevVulnerabilities(): Promise<AlertItem[]> {
+  try {
+    const response = await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json', {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!response.ok) {
+      console.error(`CISA KEV fetch failed: ${response.status}`);
+      return [];
+    }
+
+    const catalog = (await response.json()) as CisaKevCatalog;
+    return (catalog.vulnerabilities ?? []).slice(0, 80).map(cisaKevToAlert);
+  } catch (error) {
+    console.error('Error fetching CISA KEV vulnerabilities:', error);
+    return [];
+  }
+}
+
+function deduplicateAlerts(items: AlertItem[]): AlertItem[] {
+  const seen = new Set<string>();
+  const deduped: AlertItem[] = [];
+
+  for (const item of items) {
+    const key = item.slug || item.id;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(item);
+  }
+
+  return deduped;
+}
+
 export const fetchAlerts = cache(async (): Promise<AlertItem[]> => {
-  const feedResults = await Promise.all(feedConfigs.map((config) => fetchFeed(config)));
-  const allItems = feedResults.flat();
+  const [feedResults, kevItems] = await Promise.all([
+    Promise.all(feedConfigs.map((config) => fetchFeed(config))),
+    fetchCisaKevVulnerabilities(),
+  ]);
+  const allItems = [...feedResults.flat(), ...kevItems, ...alerts];
 
   // Load custom incidents from public/data/incidents.json
   await loadCustomIncidents();
@@ -239,7 +335,7 @@ export const fetchAlerts = cache(async (): Promise<AlertItem[]> => {
   // Merge with Downdetector-style custom data
   const merged = mergeDowndetectorData(filtered);
 
-  return merged.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+  return deduplicateAlerts(merged).sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 });
 
 export async function getAlertBySlug(slug: string): Promise<AlertItem | undefined> {

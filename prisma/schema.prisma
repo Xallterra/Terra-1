@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  VERIFIED_PROFESSIONAL
+  MODERATOR
+  ADMIN
+}
+
+enum PostStatus {
+  OPEN
+  INVESTIGATING
+  SOLVED
+  ARCHIVED
+}
+
+enum PostType {
+  QUESTION
+  INCIDENT
+  FIX
+  WARNING
+  DISCUSSION
+  GUIDE
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFORMATIONAL
+}
+
+enum VoteTargetType {
+  POST
+  COMMENT
+}
+
+enum FollowTargetType {
+  TAG
+  VENDOR
+  PRODUCT
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  REJECTED
+}
+
+model User {
+  id                 String            @id @default(cuid())
+  email              String            @unique
+  username           String            @unique
+  role               UserRole          @default(USER)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+  profile            Profile?
+  posts              Post[]
+  comments           Comment[]
+  votes              Vote[]
+  bookmarks          Bookmark[]
+  follows            Follow[]
+  reports            Report[]          @relation("Reporter")
+  notifications      Notification[]
+  reputationEvents   ReputationEvent[]
+}
+
+model Profile {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  displayName          String
+  title                String?
+  company              String?
+  bio                  String?
+  skills               String[] @default([])
+  reputation           Int      @default(0)
+  acceptedAnswersCount Int      @default(0)
+  postsCount           Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id                 String       @id @default(cuid())
+  slug               String       @unique
+  title              String
+  body               String
+  type               PostType
+  category           String
+  affectedVendor     String?
+  affectedProduct    String?
+  environment        Json?
+  severity           Severity
+  status             PostStatus   @default(OPEN)
+  attachments        Json?
+  codeSnippets       Json?
+  authorId           String
+  acceptedCommentId  String?      @unique
+  isLocked           Boolean      @default(false)
+  isHidden           Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  deletedAt          DateTime?
+  author             User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  acceptedComment    Comment?     @relation("AcceptedSolution", fields: [acceptedCommentId], references: [id])
+  comments           Comment[]    @relation("PostComments")
+  votes              Vote[]
+  tags               PostTag[]
+  bookmarks          Bookmark[]
+  reports            Report[]
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([severity, createdAt])
+  @@index([category, createdAt])
+  @@index([affectedVendor])
+  @@index([affectedProduct])
+  @@index([authorId])
+}
+
+model Comment {
+  id                String     @id @default(cuid())
+  body              String
+  codeSnippets      Json?
+  postId            String
+  authorId          String
+  parentId          String?
+  isAccepted        Boolean    @default(false)
+  isModeratorNote   Boolean    @default(false)
+  isHidden          Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+  post              Post       @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
+  author            User       @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  parent            Comment?   @relation("CommentReplies", fields: [parentId], references: [id])
+  replies           Comment[]  @relation("CommentReplies")
+  acceptedForPost   Post?      @relation("AcceptedSolution")
+  votes             Vote[]
+  reports           Report[]
+
+  @@index([postId, createdAt])
+  @@index([parentId])
+  @@index([authorId])
+}
+
+model Vote {
+  id         String         @id @default(cuid())
+  userId     String
+  postId     String?
+  commentId  String?
+  targetType VoteTargetType
+  value      Int            @default(1)
+  createdAt  DateTime       @default(now())
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment    Comment?       @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+  @@index([postId])
+  @@index([commentId])
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  posts       PostTag[]
+
+  @@index([name])
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model Follow {
+  id         String           @id @default(cuid())
+  userId     String
+  targetType FollowTargetType
+  targetSlug String
+  createdAt  DateTime         @default(now())
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetSlug])
+  @@index([targetType, targetSlug])
+}
+
+model Alert {
+  id                 String    @id @default(cuid())
+  externalId         String?   @unique
+  slug               String    @unique
+  title              String
+  category           String
+  subcategory        String
+  severity           Severity?
+  summary            String
+  impact             String
+  recommendedAction  String
+  sourceName         String
+  sourceUrl          String
+  status             String?
+  tags               String[]  @default([])
+  publishedAt        DateTime
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([publishedAt])
+  @@index([category, publishedAt])
+  @@index([severity])
+  @@index([status])
+}
+
+model Report {
+  id          String           @id @default(cuid())
+  reporterId  String
+  targetType  ReportTargetType
+  reason      String
+  details     String?
+  status      ReportStatus     @default(OPEN)
+  postId      String?
+  commentId   String?
+  createdAt   DateTime         @default(now())
+  resolvedAt  DateTime?
+  reporter    User             @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([postId])
+  @@index([commentId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model ReputationEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  reason    String
+  delta     Int
+  postId    String?
+  commentId String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model FeedSource {
+  id            String         @id @default(cuid())
+  name          String
+  url           String         @unique
+  category      String
+  enabled       Boolean        @default(true)
+  revalidateSec Int            @default(300)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  ingestionRuns IngestionRun[]
+}
+
+model IngestionRun {
+  id             String     @id @default(cuid())
+  feedSourceId   String
+  status         String
+  itemsFound     Int        @default(0)
+  itemsUpserted  Int        @default(0)
+  error          String?
+  startedAt      DateTime   @default(now())
+  completedAt    DateTime?
+  feedSource     FeedSource @relation(fields: [feedSourceId], references: [id], onDelete: Cascade)
+
+  @@index([feedSourceId, startedAt])
+  @@index([status, startedAt])
+}

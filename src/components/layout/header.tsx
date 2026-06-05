@@ -7,12 +7,13 @@ import type { Route } from 'next';
 import { SiteSearch } from './site-search';
 
 const links: { href: Route; label: string }[] = [
-  { href: '/', label: 'Dashboard' },
+  { href: '/', label: 'Community' },
   { href: '/alerts', label: 'Alerts' },
   { href: '/vulnerabilities', label: 'Vulnerabilities' },
   { href: '/outages', label: 'Outages' },
   { href: '/microsoft-updates', label: 'Updates' },
-  { href: '/about', label: 'About' },
+  { href: '/solutions', label: 'Solutions' },
+  { href: '/admin', label: 'Admin' },
 ];
 
 export function Header() {
