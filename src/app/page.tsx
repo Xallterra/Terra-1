@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { FeedSort } from '@/types/community';
 import { AskComposer } from '@/components/community/ask-composer';
 import { CommunitySidebar } from '@/components/community/community-sidebar';
@@ -29,11 +30,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <section className="mk-command-center">
       <aside className="mk-left-nav">
         <div className="mk-panel">
-          <h2>Operations Channels</h2>
+          <h2>Topics</h2>
           {['Endpoint', 'Intune', 'SCCM', 'Microsoft 365', 'Azure', 'AWS', 'Security', 'Vulnerabilities', 'Outages', 'Networking', 'Patch Management', 'Identity', 'Helpdesk'].map((item) => (
-            <a href={`/?category=${encodeURIComponent(item)}`} className={params.category === item ? 'active' : ''} key={item}>
+            <Link href={`/?category=${encodeURIComponent(item)}`} className={params.category === item ? 'active' : ''} key={item}>
               {item}
-            </a>
+            </Link>
           ))}
         </div>
       </aside>
@@ -41,9 +42,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <main className="mk-feed">
         <section className="mk-feed-hero">
           <div>
-            <p className="mk-kicker">Makriva Community Command Center</p>
-            <h1>Field-tested fixes before generic answers.</h1>
-            <p>Problems, verified solutions, live alerts, vulnerabilities, and Microsoft update intelligence for IT operators.</p>
+            <p className="mk-kicker">Makriva Community</p>
+            <h1>IT fixes, alerts, and discussions in one place.</h1>
+            <p>Follow practical posts from IT professionals, track active alerts, and find clear solutions without the noise.</p>
           </div>
         </section>
         <AskComposer />
