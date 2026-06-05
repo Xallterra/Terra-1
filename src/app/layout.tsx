@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import './cyberpunk.css';
+import './social.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { LayoutClient } from './layout-client';
@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Header />
-        <main style={{ flex: 1, padding: '2rem 1rem' }}>
+        <main style={{ flex: 1, padding: '1.25rem 0 2.5rem' }}>
           <LayoutClient>{children}</LayoutClient>
         </main>
         <Footer />
