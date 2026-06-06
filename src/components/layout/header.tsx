@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import type { Route } from 'next';
 import { Bell, Home, ShieldAlert, UsersRound } from 'lucide-react';
 import { SiteSearch } from './site-search';
+import { ThemeToggle } from './theme-toggle';
 
 const links: { href: Route; label: string }[] = [
   { href: '/', label: 'Community' },
@@ -51,6 +52,7 @@ export function Header() {
               </Link>
             );
           })}
+          <ThemeToggle />
           {status !== 'loading' && !user && (
             <>
               <Link href="/login" className="site-header__link">

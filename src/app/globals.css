@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --bg: #f6f7f9;
   --surface: #ffffff;
   --surface-subtle: #f1f3f5;
@@ -16,6 +17,27 @@
   --danger: #b91c1c;
   --info: #0369a1;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f141b;
+  --surface: #171d26;
+  --surface-subtle: #202733;
+  --surface-muted: #293241;
+  --border: #303948;
+  --border-strong: #475569;
+  --text: #eef2f7;
+  --muted: #b7c0cc;
+  --dim: #8d99a8;
+  --primary: #60a5fa;
+  --primary-strong: #93c5fd;
+  --primary-soft: #172b45;
+  --success: #6ee7b7;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --info: #7dd3fc;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -95,7 +117,7 @@ p {
   top: 0;
   z-index: 50;
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.94);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter: blur(12px);
 }
 
@@ -153,11 +175,11 @@ p {
 
 .site-header__link--primary {
   background: var(--text);
-  color: #fff;
+  color: var(--surface);
 }
 
 .site-header__link--primary:hover {
-  background: #000;
+  background: var(--primary);
   color: #fff;
 }
 
@@ -203,6 +225,26 @@ p {
   font-size: 0.82rem;
   font-weight: 700;
   padding: 0.42rem 0.7rem;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.theme-toggle:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-subtle);
+  color: var(--text);
 }
 
 .site-search button:hover {
@@ -414,7 +456,7 @@ textarea {
 .mk-pill:hover,
 .mk-tag-row a:hover,
 .mk-tag-cloud a:hover {
-  border-color: #bfdbfe;
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
   background: var(--primary-soft);
   color: var(--primary-strong);
 }
@@ -519,22 +561,22 @@ textarea {
 
 .mk-badge--critical {
   color: var(--danger);
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
 }
 
 .mk-badge--high {
   color: #c2410c;
-  background: #fff7ed;
-  border-color: #fed7aa;
+  background: color-mix(in srgb, #f97316 12%, var(--surface));
+  border-color: color-mix(in srgb, #f97316 35%, var(--border));
 }
 
 .mk-badge--medium,
 .mk-badge--open,
 .mk-badge--investigating {
   color: var(--warning);
-  background: #fffbeb;
-  border-color: #fde68a;
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--warning) 35%, var(--border));
 }
 
 .mk-badge--low,
@@ -542,22 +584,22 @@ textarea {
 .mk-badge--product,
 .mk-badge--type {
   color: var(--info);
-  background: #f0f9ff;
-  border-color: #bae6fd;
+  background: color-mix(in srgb, var(--info) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--info) 35%, var(--border));
 }
 
 .mk-badge--solved,
 .mk-badge--verified {
   color: var(--success);
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: color-mix(in srgb, var(--success) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
 }
 
 .mk-badge--admin,
 .mk-badge--mod {
   color: #4338ca;
-  background: #eef2ff;
-  border-color: #c7d2fe;
+  background: color-mix(in srgb, #6366f1 14%, var(--surface));
+  border-color: color-mix(in srgb, #6366f1 35%, var(--border));
 }
 
 .mk-badge--muted {
@@ -628,12 +670,12 @@ textarea {
 }
 
 .mk-comment.is-accepted {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
 }
 
 .mk-comment.is-mod-note {
-  border-color: #c7d2fe;
+  border-color: color-mix(in srgb, #6366f1 35%, var(--border));
 }
 
 .mk-replies {
@@ -752,14 +794,14 @@ textarea {
 }
 
 .form-message.error {
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
   color: var(--danger);
 }
 
 .form-message.success {
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
+  border: 1px solid color-mix(in srgb, var(--success) 35%, var(--border));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
   color: var(--success);
 }
 
@@ -775,7 +817,7 @@ textarea {
 .auth-cta {
   display: grid;
   gap: 0.55rem;
-  border: 1px solid #bfdbfe;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
   border-radius: 8px;
   background: var(--primary-soft);
   padding: 0.85rem;
@@ -874,14 +916,14 @@ textarea {
 
 .chat-widget__message.is-user {
   align-self: flex-end;
-  border-color: #bfdbfe;
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
   background: var(--primary-soft);
 }
 
 .chat-widget__notice {
   display: grid;
   gap: 0.35rem;
-  border: 1px solid #bfdbfe;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
   border-radius: 8px;
   background: var(--primary-soft);
   padding: 0.75rem;
