@@ -67,7 +67,15 @@ html, body {
 }
 
 body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   overflow-x: hidden;
+}
+
+.site-main {
+  flex: 1;
+  padding: 2rem 1rem;
 }
 
 html {
