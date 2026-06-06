@@ -1,0 +1,10 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Makriva mark</title>
+  <desc id="desc">Minimal Makriva monogram with connected admin knowledge nodes.</desc>
+  <rect width="128" height="128" rx="24" fill="#111827"/>
+  <path d="M32 88V35H43L64 66L85 35H96V88H84V57L68 81H60L44 57V88H32Z" fill="#FFFFFF"/>
+  <circle cx="32" cy="32" r="7" fill="#2563EB"/>
+  <circle cx="96" cy="32" r="7" fill="#2563EB"/>
+  <circle cx="96" cy="96" r="7" fill="#2563EB"/>
+  <path d="M38 32H90M96 39V90" stroke="#93C5FD" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -124,7 +124,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 export const authOptions: NextAuthOptions = {
   adapter: prismaAdapter,
   session: { strategy: 'jwt' },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: '/login',
     error: '/auth/error',

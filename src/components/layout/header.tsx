@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -28,7 +29,7 @@ export function Header() {
     <header className="site-header">
       <div className="site-header__inner">
         <Link href="/" className="site-header__brand" aria-label="Makriva home">
-          <span className="site-header__brand-mark">M</span>
+          <Image className="site-header__brand-mark" src="/brand/makriva-mark.svg" alt="" width={32} height={32} aria-hidden="true" />
           <span>Makriva</span>
         </Link>
 

@@ -89,6 +89,7 @@ Required production variables:
 ```bash
 DATABASE_URL=
 AUTH_SECRET=
+NEXTAUTH_SECRET=
 NEXTAUTH_URL=
 AUTH_URL=
 GOOGLE_CLIENT_ID=
@@ -97,7 +98,7 @@ GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
 ```
 
-OAuth providers are optional and only enabled when both client ID and secret are present. Credentials signup creates a `User` and `Profile`; login checks password hash and blocks suspended or deleted accounts.
+Set `AUTH_SECRET` and `NEXTAUTH_SECRET` to the same long random value in production. OAuth providers are optional and only enabled when both client ID and secret are present. Credentials signup creates a `User` and `Profile`; login checks password hash and blocks suspended or deleted accounts.
 
 ## Security Notes
 

@@ -1,0 +1,12 @@
+<svg width="520" height="128" viewBox="0 0 520 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Makriva logo</title>
+  <desc id="desc">Makriva wordmark for an admin intelligence platform.</desc>
+  <rect width="128" height="128" rx="24" fill="#111827"/>
+  <path d="M32 88V35H43L64 66L85 35H96V88H84V57L68 81H60L44 57V88H32Z" fill="#FFFFFF"/>
+  <circle cx="32" cy="32" r="7" fill="#2563EB"/>
+  <circle cx="96" cy="32" r="7" fill="#2563EB"/>
+  <circle cx="96" cy="96" r="7" fill="#2563EB"/>
+  <path d="M38 32H90M96 39V90" stroke="#93C5FD" stroke-width="4" stroke-linecap="round"/>
+  <path d="M174 86V35H186L205 64L224 35H236V86H224V55L209 78H201L186 55V86H174ZM253 86L273 35H286L306 86H293L289 75H269L265 86H253ZM272 65H286L279 46L272 65ZM321 86V35H333V57L353 35H368L346 59L369 86H354L333 62V86H321ZM385 86V35H408C414 35 419 37 423 41C427 45 429 50 429 56C429 60 428 64 426 67C424 70 421 73 417 75L431 86H416L404 77H397V86H385ZM397 67H407C411 67 414 66 416 64C418 62 419 59 419 56C419 53 418 50 416 48C414 46 411 45 407 45H397V67ZM447 86V35H459V86H447ZM487 86L468 35H481L494 72L507 35H520L501 86H487Z" fill="#111827"/>
+  <path d="M174 102H337" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+</svg>
