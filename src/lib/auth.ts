@@ -15,7 +15,17 @@ export type AuthUser = {
 };
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const session = await getServerSession(authOptions);
+  let session;
+  try {
+    session = await getServerSession(authOptions);
+  } catch (error) {
+    if (typeof error === 'object' && error && 'digest' in error && error.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw error;
+    }
+    console.error('Session lookup failed:', error);
+    return null;
+  }
+
   if (!session?.user?.email) return null;
 
   return {
