@@ -7,8 +7,8 @@ export function AskComposer() {
     <section className="mk-panel mk-composer">
       <div className="mk-section-title">
         <div>
-          <h2>Ask the Community</h2>
-          <p>Post real environment details, logs, symptoms, and what you already tried.</p>
+          <h2>Share an admin update</h2>
+          <p>Post the issue, impact, environment, evidence, and the fix or decision your team learned.</p>
         </div>
       </div>
       <form action={createPostAction} className="mk-composer__form">
@@ -47,7 +47,7 @@ export function AskComposer() {
         <textarea name="codeSnippet" className="mk-input mk-input--compact" placeholder="Optional code, event log, KQL, PowerShell, error snippet..." />
         <button className="btn btn-primary" type="submit">
           <Send size={16} />
-          Publish to Makriva
+          Share with admins
         </button>
       </form>
     </section>

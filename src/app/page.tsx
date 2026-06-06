@@ -29,7 +29,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <section className="mk-command-center">
       <aside className="mk-left-nav">
         <div className="mk-panel">
-          <h2>Operations Channels</h2>
+          <h2>Admin Workspaces</h2>
           {['Endpoint', 'Intune', 'SCCM', 'Microsoft 365', 'Azure', 'AWS', 'Security', 'Vulnerabilities', 'Outages', 'Networking', 'Patch Management', 'Identity', 'Helpdesk'].map((item) => (
             <a href={`/?category=${encodeURIComponent(item)}`} className={params.category === item ? 'active' : ''} key={item}>
               {item}
@@ -41,9 +41,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <main className="mk-feed">
         <section className="mk-feed-hero">
           <div>
-            <p className="mk-kicker">Makriva Community Command Center</p>
-            <h1>Field-tested fixes before generic answers.</h1>
-            <p>Problems, verified solutions, live alerts, vulnerabilities, and Microsoft update intelligence for IT operators.</p>
+            <p className="mk-kicker">Shared intelligence for IT admins</p>
+            <h1>Stop solving the same operational problems in separate silos.</h1>
+            <p>
+              Collect incidents, fixes, alerts, Microsoft update notes, and admin playbooks in one searchable workspace
+              so teams can learn from each other faster.
+            </p>
           </div>
         </section>
         <AskComposer />
