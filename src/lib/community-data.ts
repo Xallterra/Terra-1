@@ -164,7 +164,7 @@ function mapProfile(user: any): CommunityProfile {
     company: user.profile?.company ?? undefined,
     skills: user.profile?.skills ?? [],
     role: user.role,
-    reputation: user.profile?.reputation ?? 0,
+    reputation: user.profile?.reputationScore ?? user.profile?.reputation ?? 0,
     acceptedAnswersCount: user.profile?.acceptedAnswersCount ?? 0,
     postsCount: user.profile?.postsCount ?? 0,
   };

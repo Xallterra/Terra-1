@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import type { Route } from 'next';
 import { Bell, Home, ShieldAlert, UsersRound } from 'lucide-react';
 import { SiteSearch } from './site-search';
@@ -14,11 +15,14 @@ const links: { href: Route; label: string }[] = [
   { href: '/outages', label: 'Outages' },
   { href: '/microsoft-updates', label: 'Updates' },
   { href: '/solutions', label: 'Solutions' },
-  { href: '/admin', label: 'Admin' },
 ];
 
 export function Header() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const canSeeAdmin = user?.role === 'ADMIN' || user?.role === 'MODERATOR';
+  const navLinks = canSeeAdmin ? [...links, { href: '/admin' as Route, label: 'Admin' }] : links;
 
   return (
     <header className="site-header">
@@ -33,7 +37,7 @@ export function Header() {
         </Suspense>
 
         <nav className="site-header__nav" aria-label="Primary navigation">
-          {links.map((item) => {
+          {navLinks.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
 
             return (
@@ -46,6 +50,29 @@ export function Header() {
               </Link>
             );
           })}
+          {status !== 'loading' && !user && (
+            <>
+              <Link href="/login" className="site-header__link">
+                Log in
+              </Link>
+              <Link href="/signup" className="site-header__link site-header__link--primary">
+                Create account
+              </Link>
+            </>
+          )}
+          {user && (
+            <div className="site-header__account">
+              <Link href={`/profile/${user.username}`} className="site-header__link">
+                {user.name ?? user.username}
+              </Link>
+              <Link href="/account" className="site-header__link">
+                Account
+              </Link>
+              <Link href="/logout" className="site-header__link">
+                Logout
+              </Link>
+            </div>
+          )}
         </nav>
       </div>
     </header>

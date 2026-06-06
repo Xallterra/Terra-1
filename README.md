@@ -8,6 +8,7 @@ The home page is the product: a compact professional feed for real IT problems, 
 
 - Next.js 15, React 19, TypeScript
 - PostgreSQL + Prisma ORM
+- Auth.js / NextAuth credentials auth with Prisma Adapter
 - Redis-ready caching/rate limiting abstraction
 - Server Actions and Route Handlers
 - Clean CSS, lucide-react icons
@@ -30,7 +31,7 @@ If `DATABASE_URL` is not configured, the community UI runs with seeded fallback 
 ## Production Setup
 
 1. Provision PostgreSQL and Redis.
-2. Set `DATABASE_URL`, `REDIS_URL`, and `INGESTION_SECRET`.
+2. Set `DATABASE_URL`, `AUTH_SECRET`, `NEXTAUTH_URL` or `AUTH_URL`, `REDIS_URL`, and `INGESTION_SECRET`.
 3. Run `npx prisma migrate deploy`.
 4. Run `npm run build`.
 5. Deploy to Vercel or run the Docker image.
@@ -58,6 +59,11 @@ npx prisma migrate dev
 - `/solutions` Accepted solutions knowledge base
 - `/tags/[slug]` Tag feed
 - `/profile/[username]` Professional profile
+- `/login` Email/password login
+- `/signup` Account creation
+- `/logout` Sign out flow
+- `/account` Protected account/profile settings
+- `/auth/error` Friendly authentication error page
 - `/admin` Moderation foundations
 - `/api/ingest/alerts` RSS alert persistence route handler
 
@@ -74,11 +80,34 @@ npx prisma migrate dev
 - Search across community posts and alert intelligence
 - Seed fallback data for local review
 
+## Authentication
+
+Makriva uses Auth.js / NextAuth with the Prisma Adapter and secure password hashes. Public visitors can browse the feed, read posts, search, view profiles, and inspect alerts/vulnerabilities/outages. Authenticated active users can post, comment, vote, bookmark, report content, edit account settings, and use chat.
+
+Required production variables:
+
+```bash
+DATABASE_URL=
+AUTH_SECRET=
+NEXTAUTH_URL=
+AUTH_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+```
+
+OAuth providers are optional and only enabled when both client ID and secret are present. Credentials signup creates a `User` and `Profile`; login checks password hash and blocks suspended or deleted accounts.
+
 ## Security Notes
 
 - Server Actions validate all inputs with Zod.
 - Rate limiting uses Redis when `REDIS_URL` is configured and falls back to in-memory buckets locally.
-- Server Actions use server-side user identity via `src/lib/auth.ts`; this is an auth abstraction ready to swap for Auth.js/NextAuth or Clerk.
+- Server Actions use server-side user identity via `src/lib/auth.ts` and reject unauthenticated mutations.
+- Passwords are hashed with bcrypt before storage; plain passwords are never stored.
+- Auth cookies are managed by Auth.js/NextAuth.
+- `/account`, `/admin`, and future `/chat` routes are protected by middleware and server-side checks.
+- Suspended and deleted users are blocked from posting/chatting.
 - Client-submitted user IDs are ignored.
 - Prisma unique constraints prevent duplicate votes/bookmarks.
 - Audit fields and soft delete fields are included in the schema.

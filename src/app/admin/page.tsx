@@ -1,6 +1,9 @@
 import { ShieldAlert } from 'lucide-react';
+import { requireModerator } from '@/lib/auth';
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireModerator();
+
   return (
     <section className="container page-section mk-stack">
       <div className="mk-feed-hero">

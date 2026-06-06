@@ -14,11 +14,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <Header />
-        <main className="site-main">
-          <LayoutClient>{children}</LayoutClient>
-        </main>
-        <Footer />
+        <LayoutClient>
+          <Header />
+          <main className="site-main">{children}</main>
+          <Footer />
+        </LayoutClient>
       </body>
     </html>
   );

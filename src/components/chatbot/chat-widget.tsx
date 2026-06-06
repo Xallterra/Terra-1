@@ -1,10 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Bot, MessageSquare, Send, X } from 'lucide-react';
 import { generateChatResponse, type ChatMessage } from '@/lib/chatbot-service';
 
 export function ChatWidget() {
+  const { data: session } = useSession();
+  const canChat = session?.user?.status === 'ACTIVE';
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -23,6 +27,7 @@ export function ChatWidget() {
   }, [messages]);
 
   const handleSendMessage = () => {
+    if (!canChat) return;
     if (!input.trim()) return;
 
     const nextInput = input.trim();
@@ -66,6 +71,12 @@ export function ChatWidget() {
           </header>
 
           <div className="chat-widget__messages">
+            {!canChat && (
+              <div className="chat-widget__notice">
+                <strong>Log in to chat with other admins.</strong>
+                <Link href="/login">Log in</Link>
+              </div>
+            )}
             {messages.map((message) => (
               <div className={`chat-widget__message ${message.role === 'user' ? 'is-user' : ''}`} key={message.id}>
                 {message.content}
@@ -85,10 +96,10 @@ export function ChatWidget() {
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask about a fix or alert..."
-              disabled={isLoading}
+              placeholder={canChat ? 'Ask about a fix or alert...' : 'Log in to chat with other admins'}
+              disabled={isLoading || !canChat}
             />
-            <button type="submit" disabled={isLoading || !input.trim()} aria-label="Send message">
+            <button type="submit" disabled={isLoading || !input.trim() || !canChat} aria-label="Send message">
               <Send size={16} />
             </button>
           </form>

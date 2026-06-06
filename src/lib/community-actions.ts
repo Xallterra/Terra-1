@@ -4,7 +4,7 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getCurrentUser, canModerate } from '@/lib/auth';
+import { requireUser, canModerate, type AuthUser } from '@/lib/auth';
 import { createCommentSchema, createPostSchema, reportSchema, voteSchema } from '@/lib/community-validation';
 import { hasDatabaseUrl, prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rate-limit';
@@ -16,7 +16,7 @@ function formString(formData: FormData, key: string): string | undefined {
 }
 
 export async function createPostAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const limited = await rateLimit(`post:${user.id}`, 6, 60);
   if (!limited.allowed) throw new Error('Posting too quickly. Please wait before creating another thread.');
 
@@ -70,13 +70,13 @@ export async function createPostAction(formData: FormData) {
     },
   });
 
-  await db.profile.updateMany({ where: { userId: user.id }, data: { postsCount: { increment: 1 }, reputation: { increment: 2 } } });
+  await db.profile.updateMany({ where: { userId: user.id }, data: { postsCount: { increment: 1 }, reputation: { increment: 2 }, reputationScore: { increment: 2 } } });
   revalidateTag('community');
   redirect(`/posts/${slug}`);
 }
 
 export async function createCommentAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const limited = await rateLimit(`comment:${user.id}`, 20, 60);
   if (!limited.allowed) throw new Error('Commenting too quickly. Please wait before replying again.');
 
@@ -99,7 +99,7 @@ export async function createCommentAction(formData: FormData) {
         codeSnippets: parsed.codeSnippet ? [{ label: 'snippet', value: parsed.codeSnippet }] : undefined,
       },
     });
-    await db.profile.updateMany({ where: { userId: user.id }, data: { reputation: { increment: 1 } } });
+    await db.profile.updateMany({ where: { userId: user.id }, data: { reputation: { increment: 1 }, reputationScore: { increment: 1 } } });
   }
 
   revalidateTag('community');
@@ -107,7 +107,7 @@ export async function createCommentAction(formData: FormData) {
 }
 
 export async function voteAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const parsed = voteSchema.parse({
     targetType: formString(formData, 'targetType'),
     targetId: formString(formData, 'targetId'),
@@ -135,7 +135,7 @@ export async function voteAction(formData: FormData) {
 }
 
 export async function bookmarkAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const postId = formString(formData, 'postId');
   if (!postId) return;
 
@@ -152,7 +152,7 @@ export async function bookmarkAction(formData: FormData) {
 }
 
 export async function acceptSolutionAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const postId = formString(formData, 'postId');
   const commentId = formString(formData, 'commentId');
   if (!postId || !commentId || !hasDatabaseUrl()) return;
@@ -170,7 +170,7 @@ export async function acceptSolutionAction(formData: FormData) {
 }
 
 export async function reportAction(formData: FormData) {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const parsed = reportSchema.parse({
     targetType: formString(formData, 'targetType'),
     targetId: formString(formData, 'targetId'),
@@ -195,13 +195,14 @@ export async function reportAction(formData: FormData) {
   revalidatePath('/admin');
 }
 
-async function ensureUser(user: Awaited<ReturnType<typeof getCurrentUser>>) {
+async function ensureUser(user: AuthUser) {
   const db = prisma as any;
   await db.user.upsert({
     where: { id: user.id },
     create: {
       id: user.id,
       email: user.email,
+      name: user.name,
       username: user.username,
       role: user.role,
       profile: { create: { displayName: user.username, title: 'Makriva Member' } },
